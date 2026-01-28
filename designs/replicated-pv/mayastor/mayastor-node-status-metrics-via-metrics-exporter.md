@@ -10,8 +10,8 @@ owners:
   - "@niladrih"
 editor: TBD
 creation-date: 2025-11-18
-last-updated: 2025-11-18
-status: provisional
+last-updated: 2026-01-19
+status: implementing
 replaces:
 superseded-by:
 ---
@@ -100,6 +100,13 @@ Extend the current metrics-exporter so it can:
 ## Implementation History
 
 * 2025-11-18: Draft created as *provisional* for community review.
+* 2026-01-19: Implementation started in mayastor-extensions. Status changed to *implementing*. Core implementation includes:
+  * REST client for `/v0/nodes` endpoint with connection pooling and timeout handling
+  * Node status data structures matching OpenAPI v0 spec (Node, NodeSpec, NodeState, CordonDrainState)
+  * Prometheus collectors for three gauges: `mayastor_node_online`, `mayastor_node_cordoned`, `mayastor_node_draining`
+  * Periodic polling task with jitter (default 15s interval + 0-5s jitter)
+  * Integration into metrics-exporter binary with configuration via environment variables and CLI flags
+  * In-memory caching with RwLock for thread-safe access
 
 ## Drawbacks
 
