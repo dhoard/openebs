@@ -10,7 +10,7 @@ owners:
   - "@niladrih"
 editor: TBD
 creation-date: 2025-11-18
-last-updated: 2026-01-19
+last-updated: 2026-02-04
 status: implementing
 replaces:
 superseded-by:
@@ -67,27 +67,48 @@ Extend the current metrics-exporter so it can:
 1. Periodically query the control-plane `/v0/nodes` REST endpoint (and future node-related endpoints as needed).
 2. Parse node metadata, in-memory cache it, and derive three booleans per node: online, cordoned, and draining.
 3. Expose the derived values through the existing `/metrics` endpoint as Prometheus gauges:
-   * `mayastor_node_online` (0/1)
-   * `mayastor_node_cordoned` (0/1)
-   * `mayastor_node_draining` (0/1)
+   * `mayastor_node_online` (0/1) - indicates if node is online
+   * `mayastor_node_cordoned` (0/1) - indicates if node is cordoned
+   * `mayastor_node_draining` (0/1) - indicates if node is draining
+   * `mayastor_node_status_last_fetch_seconds` - seconds since last successful fetch (for staleness detection)
+   * `mayastor_node_status_fetch_errors_total` - cumulative count of fetch failures
 4. Keep the exporter deployment / scrape configuration unchanged so Prometheus and Grafana continue to rely on the same endpoints.
 
 ### Implementation Details
 
-* The REST client will reuse the existing control-plane authentication model (service account credentials inside the exporter pod) to avoid new secrets.
-* Polling cadence will match other exporter loops (default 15s) and include jitter plus circuit-breaking so that REST failures do not block metric updates.
+* The REST client reuses the existing control-plane authentication model (service account credentials inside the exporter pod) to avoid new secrets.
+* Polling cadence matches other exporter loops (default 15s) and includes jitter (0-5s random) to prevent thundering herd. On REST failures, the exporter keeps the last known state in cache and increments an error counter.
 * Metrics are updated atomically per scrape cycle to avoid mixed-state results within a scrape window.
 * The exporter remains stateless; no new storage or CRDs are introduced.
+* Polling fetches immediately on startup, then waits interval+jitter between subsequent polls.
 * Architectural flow:
   1. Control-plane stays the authoritative source of node state.
   2. Metrics-exporter polls REST, refreshes its cached state, and updates gauges.
   3. Prometheus scrapes the exporter.
   4. Grafana dashboards consume the same series without modification.
 
+#### Configuration
+
+The feature can be configured via CLI flags or environment variables:
+
+| CLI Flag | Environment Variable | Default | Description |
+|----------|---------------------|---------|-------------|
+| `--rest-endpoint` | `MAYASTOR_REST_ENDPOINT` | (none) | Control-plane REST API URL |
+| `--polling-interval` | `MAYASTOR_POLLING_INTERVAL` | `15s` | Polling interval (humantime format) |
+| `--scrape-timeout` | `MAYASTOR_SCRAPE_TIMEOUT` | `10s` | HTTP request timeout |
+
+Example:
+```bash
+metrics-exporter-io-engine \
+  --rest-endpoint "http://control-plane:8081" \
+  --polling-interval "15s" \
+  --scrape-timeout "10s"
+```
+
 ### Risks and Mitigations
 
-* **REST unavailability:** When the control-plane REST service is unreachable the exporter could emit stale data. Mitigation: surface `mayastor_node_status_scrape_error` counters and keep the last known state with timestamps so operators can alert on scrape gaps.
-* **Increased exporter CPU usage:** Polling REST plus metric translation adds work. Mitigation: implementation optimizes payload parsing, reuses connections, and supports configurable intervals to bound overhead.
+* **REST unavailability:** When the control-plane REST service is unreachable the exporter emits stale data from cache. Mitigation: the `mayastor_node_status_fetch_errors_total` counter tracks failures and `mayastor_node_status_last_fetch_seconds` allows operators to detect staleness and alert on scrape gaps.
+* **Increased exporter CPU usage:** Polling REST plus metric translation adds work. Mitigation: implementation optimizes payload parsing, reuses HTTP connections (pool with 90s idle timeout, max 2 per host), and supports configurable intervals to bound overhead.
 * **Auth drift between components:** Exporter credentials might not match REST expectations. Mitigation: reuse existing service account RBAC that already grants metrics-exporter read-only access to REST.
 
 ## Graduation Criteria
@@ -100,13 +121,23 @@ Extend the current metrics-exporter so it can:
 ## Implementation History
 
 * 2025-11-18: Draft created as *provisional* for community review.
-* 2026-01-19: Implementation started in mayastor-extensions. Status changed to *implementing*. Core implementation includes:
+* 2026-01-19: Implementation started in mayastor-extensions (commit b7cf482). Status changed to *implementing*. Core implementation includes:
   * REST client for `/v0/nodes` endpoint with connection pooling and timeout handling
   * Node status data structures matching OpenAPI v0 spec (Node, NodeSpec, NodeState, CordonDrainState)
   * Prometheus collectors for three gauges: `mayastor_node_online`, `mayastor_node_cordoned`, `mayastor_node_draining`
   * Periodic polling task with jitter (default 15s interval + 0-5s jitter)
   * Integration into metrics-exporter binary with configuration via environment variables and CLI flags
   * In-memory caching with RwLock for thread-safe access
+* 2026-01-xx: Integration tests added (commit 993c1b7):
+  * Wiremock-based client tests: success, cordoned, draining, offline, HTTP 500, invalid JSON, empty lists, rapid state transitions
+  * Collector tests: creation, empty cache, online/offline/cordoned/draining states, state transitions, metric name verification
+  * Fixed `create_test_node` helper to properly handle cordoned and draining flags
+* 2026-02-04: Code review fixes applied:
+  * Fixed polling loop to fetch immediately on startup (was sleeping first, causing ~15-20s delay for initial metrics)
+  * Improved jitter implementation using `rand::Rng::gen_range()` for clarity
+  * Renamed environment variables to `MAYASTOR_POLLING_INTERVAL` and `MAYASTOR_SCRAPE_TIMEOUT` to avoid collisions
+  * Added `mayastor_node_status_last_fetch_seconds` gauge for staleness detection
+  * Added `mayastor_node_status_fetch_errors_total` gauge for tracking fetch failures
 
 ## Drawbacks
 
@@ -123,7 +154,30 @@ No new infrastructure is required beyond updating the existing metrics-exporter 
 
 ## Testing
 
-* Unit tests covering REST polling logic and node-to-metric mapping.
-* Mocked tests verifying rapid node state transitions (online <-> cordoned <-> draining).
+### Unit Tests
+
+**Client tests (wiremock-based):**
+* `test_client_creation` - Verifies client initialization
+* `test_fetch_nodes_success` - Successful 3-node fetch
+* `test_fetch_nodes_with_cordoned_node` - Cordoned node detection
+* `test_fetch_nodes_with_draining_node` - Draining node detection
+* `test_fetch_nodes_offline` - Offline node detection
+* `test_fetch_nodes_http_error` - HTTP 500 handling
+* `test_fetch_nodes_invalid_json` - Malformed JSON handling
+* `test_fetch_nodes_empty_list` - Empty response handling
+* `test_rapid_state_transitions` - Online -> cordoned -> draining -> recovered
+
+**Collector tests:**
+* `test_collector_creation` - Verifies 5 metric descriptors
+* `test_collector_empty_cache` - Empty cache returns 5 metric families
+* `test_collector_online_nodes` - Online node metrics verification
+* `test_collector_offline_node` - Offline node has online=0
+* `test_collector_cordoned_node` - Cordoned flag produces cordoned=1
+* `test_collector_draining_node` - Draining flag produces draining=1
+* `test_collector_state_transitions` - Rapid state changes reflect in metrics
+* `test_collector_metric_names` - OEP-4111 metric name compliance
+
+### Integration Validation
+
 * Local Prometheus scrape validation to ensure metric names and labels follow conventions.
 * Optional Grafana dashboard verification to confirm existing panels render correctly.
