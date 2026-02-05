@@ -34,6 +34,8 @@ jobs:
         run: nix-shell ./scripts/helm/shell.nix --run "./scripts/helm/images.sh generate --dependency-update"
       - name: Patch chart/Chart.yaml
         run: nix-shell ./scripts/helm/shell.nix --run "./scripts/helm/images.sh patch"
+      - name: Update chart README.md
+        run: nix-shell ./scripts/helm/shell.nix --run "SKIP_GIT=1 ./scripts/helm/generate-readme.sh"
       - id: set-target
         run: |
           version=$(nix-shell -p yq-go --run "yq '.appVersion' charts/Chart.yaml")
