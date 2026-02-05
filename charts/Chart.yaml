@@ -71,6 +71,8 @@ annotations:
       image: docker.io/openebs/kubectl:1.25.15
     - name: linux-utils
       image: docker.io/openebs/linux-utils:4.3.0
+    - name: linux-utils
+      image: docker.io/openebs/linux-utils:4.4.0
     - name: lvm-driver
       image: docker.io/openebs/lvm-driver:1.9.0-develop
     - name: mayastor-agent-core

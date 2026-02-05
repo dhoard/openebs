@@ -26,9 +26,16 @@ jobs:
       - uses: cachix/install-nix-action@v31.3.0
         with:
           nix_path: "${{ steps.nixpath.outputs.nix_path }}"
+      - name: Prefetch Nix-Shell
+        run: nix-build ./scripts/helm/shell.nix
       - name: Update submodules
-        run: |
-          ./scripts/git/set-submodule-branches.sh -u
+        run: ./scripts/git/set-submodule-branches.sh -u
+      - name: Generate image list
+        run: nix-shell ./scripts/helm/shell.nix --run "./scripts/helm/images.sh generate --dependency-update"
+      - name: Patch chart/Chart.yaml
+        run: nix-shell ./scripts/helm/shell.nix --run "./scripts/helm/images.sh patch"
+      - name: Update chart README.md
+        run: nix-shell ./scripts/helm/shell.nix --run "SKIP_GIT=1 ./scripts/helm/generate-readme.sh"
       - id: set-target
         run: |
           version=$(nix-shell -p yq-go --run "yq '.appVersion' charts/Chart.yaml")

@@ -45,4 +45,9 @@ repos:
         entry: nix-shell --pure --run "git ls-files '*.md' | xargs codespell --ignore-words '.codespell-ignores.txt'"
         types: [markdown]
         pass_filenames: false
-
+    -   id: helm-docs
+        name: Helm Docs
+        description: Auto generate the helm docs README.
+        language: system
+        entry: bash -c 'nix-shell --pure --run "./scripts/helm/generate-readme.sh" ./scripts/helm/shell.nix'
+        types: [file]
