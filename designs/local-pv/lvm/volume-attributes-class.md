@@ -8,7 +8,7 @@ owners:
 editor: TBD
 creation-date: 2026-01-11
 last-updated: 2026-01-21
-status: provisional
+status: implementable
 ---
 
 # VolumeAttributeClass Support for Enhanced PVC Configuration
@@ -143,7 +143,7 @@ Implementation details:
 - Implement the logic of ControllerModifyVolume
 
 #### 3. CSI Node Agent Modifications for VAC Processing
-The CSI driver node agent must apply VAC parameters to workloads in two scenarios. For both scenarios, it is partially inherent: 
+The CSI driver node agent must apply VAC parameters to workloads in two scenarios. For both scenarios, it is partially inherent:
 - Implement updateVol and syncVol handlers in node controller.
 - Watch for LVMVolume updates and reapply IO limits.
 - Handle volume remounts and pod restarts gracefully.
@@ -198,6 +198,6 @@ TODO
 The `Summary` and `Motivation` sections being merged signaling owner acceptance
 
 ## Testing
-For testing, several stages must be implemented: 
-- Unit tests in the code that will cover possible options for configuring and parameterizing the vac. 
+For testing, several stages must be implemented:
+- Unit tests in the code that will cover possible options for configuring and parameterizing the vac.
 - Integration tests that should show how the mounting itself and the application of parameters in /sys/fs/cgroup will work. There should be a scenario in which several pods are created with different numbers of replicas using volumeMode: Block and volumeMode: Filesystem, in which use different VAC.
