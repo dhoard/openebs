@@ -10,8 +10,8 @@ owners:
   - "@niladrih"
 editor: TBD
 creation-date: 2025-11-18
-last-updated: 2025-11-18
-status: provisional
+last-updated: 2025-12-10
+status: implementable
 replaces:
 superseded-by:
 ---
