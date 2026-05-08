@@ -8,8 +8,7 @@ use crate::{
 use upgrade::{
     common::{error::PartialRebuildNotAllowed, kube::client as KubeClient},
     events::event_recorder::EventRecorder,
-    helm::chart::HelmValuesCollection,
-    helm::upgrade::HelmUpgrader,
+    helm::{chart::HelmValuesCollection, upgrade::HelmUpgrader},
 };
 
 use futures::TryFutureExt;

@@ -1,5 +1,4 @@
-use plugin::resources::utils::OutputFormat;
-use plugin::ExecuteOperation;
+use plugin::{resources::utils::OutputFormat, ExecuteOperation};
 
 use clap::Parser;
 use snafu::Snafu;

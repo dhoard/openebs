@@ -1,7 +1,5 @@
 use kubectl_plugin::resources;
-use localpv::hostpath;
-use localpv::lvm;
-use localpv::zfs;
+use localpv::{hostpath, lvm, zfs};
 use plugin::{init_tracing_with_jaeger, ExecuteOperation};
 use supportability::DumpArgs;
 use upgrade::cli::Upgrade;

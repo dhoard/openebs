@@ -1,21 +1,28 @@
-use crate::cli_utils::localpv::zfs::node::types::ZfsNode;
-use crate::cli_utils::localpv::zfs::node::zfs_nodes;
-use crate::cli_utils::localpv::zfs::volume::types::ZfsVolume;
-use crate::cli_utils::localpv::zfs::volume::zfs_volumes;
-use crate::cli_utils::supportability::dump::dump_dynamic_resource;
-use supportability::collect::error::Error;
-use supportability::collect::k8s_resources::client::{ClientSet, K8sResourceError};
-use supportability::collect::k8s_resources::k8s_resource_dump::{
-    create_file_and_write, get_k8s_vs_classes, get_k8s_vsnapshot_contents, K8sResourceDumperError,
+use crate::cli_utils::{
+    localpv::zfs::{
+        node::{types::ZfsNode, zfs_nodes},
+        volume::{types::ZfsVolume, zfs_volumes},
+    },
+    supportability::dump::dump_dynamic_resource,
 };
-use supportability::collect::logs::create_directory_if_not_exist;
-use supportability::collect::utils::log;
+use supportability::collect::{
+    error::Error,
+    k8s_resources::{
+        client::{ClientSet, K8sResourceError},
+        k8s_resource_dump::{
+            create_file_and_write, get_k8s_vs_classes, get_k8s_vsnapshot_contents,
+            K8sResourceDumperError,
+        },
+    },
+    logs::create_directory_if_not_exist,
+    utils::log,
+};
 
 use kube::Api;
 use std::path::Path;
 
 async fn dump_typed_zfs_nodes(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Error> {
-    log("\t Collecting ZFS Node Resources".to_string());
+    log("\t Collecting ZFS Node Resources");
 
     let api: Api<ZfsNode> = Api::namespaced(k8s_client.kube_client(), k8s_client.namespace());
 
@@ -46,7 +53,7 @@ async fn dump_typed_zfs_nodes(k8s_client: &ClientSet, root_dir: &Path) -> Result
 }
 
 async fn dump_typed_zfs_volumes(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Error> {
-    log("\t Collecting ZFS Volume Resources".to_string());
+    log("\t Collecting ZFS Volume Resources");
 
     let api: Api<ZfsVolume> = Api::namespaced(k8s_client.kube_client(), k8s_client.namespace());
 
@@ -107,7 +114,7 @@ async fn dump_zfs_vscont_and_vs_class(
 
 /// Dump zfs localpv specific CRs, VolumeSnapshotContents and VolumeSnapshotClasses.
 pub async fn zfs_dump(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Error> {
-    log("Collecting ZFS LocalPV Specific Resources...".to_string());
+    log("Collecting ZFS LocalPV Specific Resources...");
 
     let mut errors = Vec::new();
     let mut root_dir = root_dir.to_path_buf();
@@ -150,10 +157,10 @@ pub async fn zfs_dump(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Err
     }
 
     if !errors.is_empty() {
-        log("Failed to dump ZFS resources".to_string());
+        log("Failed to dump ZFS resources");
         return Err(Error::MultipleErrors(errors));
     }
 
-    log("Completed collection of ZFS LocalPV Specific Resources".to_string());
+    log("Completed collection of ZFS LocalPV Specific Resources");
     Ok(())
 }

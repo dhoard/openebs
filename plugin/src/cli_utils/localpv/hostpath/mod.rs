@@ -1,8 +1,7 @@
 pub(crate) mod volume;
 
 use clap::Parser;
-use plugin::resources::utils::OutputFormat;
-use plugin::ExecuteOperation;
+use plugin::{resources::utils::OutputFormat, ExecuteOperation};
 use snafu::Snafu;
 
 /// LocalPV Hostpath operations.

@@ -1,21 +1,28 @@
-use crate::cli_utils::localpv::lvm::node::lvm_nodes;
-use crate::cli_utils::localpv::lvm::node::types::LvmNode;
-use crate::cli_utils::localpv::lvm::volume::lvm_volumes;
-use crate::cli_utils::localpv::lvm::volume::types::LvmVolume;
-use crate::cli_utils::supportability::dump::dump_dynamic_resource;
-use supportability::collect::error::Error;
-use supportability::collect::k8s_resources::client::{ClientSet, K8sResourceError};
-use supportability::collect::k8s_resources::k8s_resource_dump::{
-    create_file_and_write, get_k8s_vs_classes, get_k8s_vsnapshot_contents, K8sResourceDumperError,
+use crate::cli_utils::{
+    localpv::lvm::{
+        node::{lvm_nodes, types::LvmNode},
+        volume::{lvm_volumes, types::LvmVolume},
+    },
+    supportability::dump::dump_dynamic_resource,
 };
-use supportability::collect::logs::create_directory_if_not_exist;
-use supportability::collect::utils::log;
+use supportability::collect::{
+    error::Error,
+    k8s_resources::{
+        client::{ClientSet, K8sResourceError},
+        k8s_resource_dump::{
+            create_file_and_write, get_k8s_vs_classes, get_k8s_vsnapshot_contents,
+            K8sResourceDumperError,
+        },
+    },
+    logs::create_directory_if_not_exist,
+    utils::log,
+};
 
 use kube::Api;
 use std::path::Path;
 
 async fn dump_typed_lvm_nodes(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Error> {
-    log("\t Collecting LVM Node Resources...".to_string());
+    log("\t Collecting LVM Node Resources...");
 
     let api: Api<LvmNode> = Api::namespaced(k8s_client.kube_client(), k8s_client.namespace());
 
@@ -46,7 +53,7 @@ async fn dump_typed_lvm_nodes(k8s_client: &ClientSet, root_dir: &Path) -> Result
 }
 
 async fn dump_typed_lvm_volumes(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Error> {
-    log("\t Collecting LVM Volume Resources".to_string());
+    log("\t Collecting LVM Volume Resources");
 
     let api: Api<LvmVolume> = Api::namespaced(k8s_client.kube_client(), k8s_client.namespace());
 
@@ -107,7 +114,7 @@ async fn dump_lvm_vscont_and_vs_class(
 
 /// Dump lvm localpv specific CRs, VolumeSnapshotContents and VolumeSnapshotClasses.
 pub async fn lvm_dump(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Error> {
-    log("Collecting LVM LocalPV Specific Resources...".to_string());
+    log("Collecting LVM LocalPV Specific Resources...");
     let mut errors = Vec::new();
 
     let mut root_dir = root_dir.to_path_buf();
@@ -140,10 +147,10 @@ pub async fn lvm_dump(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Err
     }
 
     if !errors.is_empty() {
-        log("Failed to dump LVM resources".to_string());
+        log("Failed to dump LVM resources");
         return Err(Error::MultipleErrors(errors));
     }
 
-    log("Completed collection of LVM LocalPV Specific Resources".to_string());
+    log("Completed collection of LVM LocalPV Specific Resources");
     Ok(())
 }

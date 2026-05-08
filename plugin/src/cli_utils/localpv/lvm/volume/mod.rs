@@ -3,8 +3,7 @@ use plugin::resources::utils::{print_table, CreateRows, GetHeaderRow};
 use types::{LvmVolRecord, LvmVolume, LvmVolumeObject};
 
 use k8s_openapi::api::core::v1::PersistentVolume;
-use kube::ResourceExt;
-use kube::{api::ListParams, Api, Client};
+use kube::{api::ListParams, Api, Client, ResourceExt};
 use lazy_static::lazy_static;
 use prettytable::{row, Row};
 

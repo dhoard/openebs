@@ -2,8 +2,7 @@ use super::Error;
 use crate::cli_utils::localpv::adjust_bytes;
 
 use anyhow::anyhow;
-use k8s_openapi::api::core::v1::PersistentVolume;
-use k8s_openapi::NamespaceResourceScope;
+use k8s_openapi::{api::core::v1::PersistentVolume, NamespaceResourceScope};
 use kube::{api::ObjectMeta, Resource, ResourceExt};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;

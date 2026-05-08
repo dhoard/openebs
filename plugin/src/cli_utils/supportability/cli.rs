@@ -1,12 +1,17 @@
-use crate::cli_utils::localpv::lvm::supportability::lvm_dump;
-use crate::cli_utils::localpv::zfs::supportability::zfs_dump;
-use crate::cli_utils::supportability::{DumpArgs, Resource, SupportArgs};
+use crate::cli_utils::{
+    localpv::{lvm::supportability::lvm_dump, zfs::supportability::zfs_dump},
+    supportability::{DumpArgs, Resource, SupportArgs},
+};
 use plugin::ExecuteOperation;
-use supportability::collect::common::{DumpConfig, OutputFormat};
-use supportability::collect::error::Error;
-use supportability::collect::system_dump::SystemDumper;
-use supportability::collect::utils::log;
-use supportability::operations::SystemDumpArgs;
+use supportability::{
+    collect::{
+        common::{DumpConfig, OutputFormat},
+        error::Error,
+        system_dump::SystemDumper,
+        utils::log,
+    },
+    operations::SystemDumpArgs,
+};
 
 impl DumpArgs {
     pub(crate) async fn execute(&self) -> Result<(), anyhow::Error> {
@@ -59,7 +64,7 @@ async fn execute_resource_dump(cli_args: SupportArgs, resource: Resource) -> Res
             }
 
             if !errors.is_empty() {
-                log("Failed to dump system state".to_string());
+                log("Failed to dump system state");
                 return Err(Error::MultipleErrors(errors));
             }
             println!("Completed collection of dump !!");
@@ -98,7 +103,7 @@ pub async fn openebs_system_dump(
     }
 
     if !errors.is_empty() {
-        log("Failed to dump system state".to_string());
+        log("Failed to dump system state");
         return Err(Error::MultipleErrors(errors));
     }
     Ok(())
