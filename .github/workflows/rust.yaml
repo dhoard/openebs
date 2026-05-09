@@ -27,6 +27,7 @@ jobs:
           filters: |
             rust:
               - 'plugin/**'
+              - 'openebs-upgrade/**'
               - 'nix/**'
               - shell.nix
               - default.nix
