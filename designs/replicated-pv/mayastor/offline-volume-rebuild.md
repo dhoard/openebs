@@ -7,7 +7,7 @@ owners:
   - "@yugchaudhari"
 editor: TBD
 creation-date: 2026-05-09
-last-updated: 2026-05-09
+last-updated: 2026-05-11
 status: provisional
 see-also:
   - https://github.com/openebs/mayastor/issues/1977
@@ -57,7 +57,9 @@ When a DiskPool is decommissioned, a node fails, or a disk is taken offline for 
 2. Accept silent data risk until a future client mounts the volume
 3. Build external tooling to detect and remediate
 
-This was hit recently in production while decommissioning DiskPools, only mounted/published volumes had their rebuilds triggered automatically; replicas of unpublished volumes (CDI golden images, etc.) were left degraded with no recovery path until manual intervention.
+This was hit recently in production while physically removing disks from baremetal nodes (PCI-remove for NVMe, sysfs offline for SCSI/SATA). The hot-spare logic rebuilt replicas of attached/published volumes automatically, but for unpublished volumes (CDI golden images, cold backup volumes, etc.) the only workaround was to create temporary "trigger pods" that mount each affected PVC just to force nexus creation, so the existing hot-spare logic would have something to rebuild against. That step alone was repeated dozens of times during a cluster-wide disk migration, exactly the operator pain this OEP eliminates.
+
+A separate but related observation from the same operation: after a disk is physically removed, the SPDK in-memory cache on remote nodes can keep reporting the now-dead replicas as healthy until `io-engine` is restarted on those nodes. The offline rebuild reconciler should therefore make its trigger decision based on persisted `NexusInfo` (in etcd), not on live replica state queries, see [Trigger Logic](#trigger-logic).
 
 ### Goals
 
@@ -69,18 +71,20 @@ This was hit recently in production while decommissioning DiskPools, only mounte
 
 ### Non-Goals
 
-- Replica-to-replica rebuild without a nexus (the existing rebuild engine runs inside the nexus)
+- Replica-to-replica rebuild without a nexus is out of scope for the initial implementation. The existing snapshot-chain rebuild code (currently unused) could in principle support this; revisit if the nexus-based approach proves too heavyweight.
 - Cross-node replica relocation (the temp nexus runs on the same node as a healthy replica)
-- New data-plane API changes, the io-engine already supports unshared nexus creation; only control plane changes are needed
+- Large data-plane API changes. The io-engine already supports unshared nexus creation, so the bulk of the work is in the control plane. A small nexus-code change is in scope to make unshared nexuses skip the full-rebuild-on-crash penalty (per [State Tracking](#state-tracking)).
 - Replacing or significantly changing the existing hot-spare logic for published volumes
 
 ## Proposal
 
 ### User Stories
 
-#### Story 1: DiskPool decommissioning
+#### Story 1: DiskPool drain / decommissioning
 
-A cluster operator wants to decommission a DiskPool to retire ageing hardware. They run `kubectl mayastor cordon pool ...` and wait for replicas to be evicted. With offline rebuild enabled, replicas of unpublished volumes are automatically rebuilt onto other pools without operator intervention. Without offline rebuild, the operator must either publish every affected volume manually or accept that those replicas will remain on the cordoned pool.
+A cluster operator wants to decommission a DiskPool to retire ageing hardware. They run a `drain` operation on the pool, which cordons it and evicts replicas. With offline rebuild enabled, replicas of unpublished volumes are automatically rebuilt onto other pools without operator intervention. Without offline rebuild, the operator must either publish every affected volume manually (so the existing hot-spare logic kicks in) or accept that replicas of unpublished volumes will remain on the drained pool.
+
+A future `pool drain` operation (referenced by @tiagolobocastro on the issue) can be built on top of this OEP, drain becomes "cordon + trigger offline rebuild for affected unpublished volumes + wait for published volumes to migrate."
 
 #### Story 2: Node maintenance
 
@@ -100,11 +104,15 @@ The temporary nexus used for offline rebuild needs to be tracked across control-
 - `health_info_id()` continues to point at the active nexus's `NexusInfo`
 - The existing nexus reconciler (`handle_faulted_children`) will work without modification
 
-A small flag (e.g. `target_config.target.share_state == OfflineRebuild`) can distinguish offline-rebuild targets from real publishes for the few places that need the distinction (CSI publish flow, telemetry).
+No additional flag is needed to distinguish offline-rebuild targets from real publishes, `share == Protocol::None` is sufficient as the marker. CSI publish, when it arrives, simply transitions the nexus from unshared to shared via `share_nexus` (see [Concurrent Operations](#concurrent-operations)).
+
+Additionally, per @tiagolobocastro's feedback, the nexus data-plane code itself should treat unshared nexuses differently for clean-shutdown semantics: since there is no frontend I/O, a control-plane crash during offline rebuild does not need to force a full re-rebuild on recovery. This change lives in the io-engine / nexus code rather than at the control-plane layer.
 
 #### Trigger Logic
 
-A new `OfflineRebuildReconciler` is added to `controller/reconciler/volume/mod.rs` alongside `HotSpareReconciler` and `GarbageCollector`. Trigger conditions per volume:
+A new `OfflineRebuildReconciler` is added to `controller/reconciler/volume/mod.rs` alongside `HotSpareReconciler` and `GarbageCollector`. The reconciler is gated by a cluster-level config knob `offline_rebuild_enabled` (default: **disabled**) so that releases can ship before the feature is fully battle-tested. Operators opt in by setting the flag.
+
+Per-volume trigger conditions when the feature is enabled:
 
 - `volume.policy.self_heal == true`
 - `volume.target().is_none()`: volume is currently unpublished
@@ -116,7 +124,7 @@ If `current_replica_count < num_replicas` (a replica is missing entirely, not me
 
 #### Rebuild Flow
 
-1. Pick a target node via existing `target_node_candidate`. Prefer a node hosting a healthy replica to avoid cross-node copy.
+1. Pick a target node via existing `target_node_candidate`. Prefer a node hosting one of the volume's healthy replicas (or, if applicable, the node where the rebuilding replica itself lives) to avoid network copy. Among eligible candidate nodes, spread the placement of temporary offline-rebuild nexuses across mayastor nodes, pick the node with the fewest existing offline-rebuild nexuses (per @Abhinandan-Purkait's blast-radius concern).
 2. Build a `TargetConfig` with `share = Protocol::None` (unshared).
 3. Reuse `volume/operations_helper.rs::create_nexus`. It already calls `healthy_volume_replicas`, makes replicas accessible, and creates the nexus via `OperationGuardArc::<NexusSpec>::create`.
 4. Skip the `share_nexus` step entirely. A `CreateNexus` without subsequent share is naturally non-shared.
@@ -149,6 +157,8 @@ One caveat: a replica that was in the process of being disowned right before off
 | Transient node flakiness triggers unnecessary rebuilds | Configurable grace period (e.g. 10 minutes default), separate from the published-volume `faulted_child_wait` |
 | Crash during rebuild leaves orphaned temp nexus | The nexus is owned by the volume (`owner = Some(volume_uuid)`); existing reconciler logic should detect and clean up. To be confirmed during implementation. |
 | Published volume target node conflicts with rebuild node | Documented in [Concurrent Operations](#concurrent-operations) |
+| Stale SPDK in-memory replica state hides actual replica failures | Drive trigger decision from persisted `NexusInfo` (etcd), not live SPDK replica state. Observed in production after physical disk removal, remote nodes can report dead replicas as healthy until `io-engine` is restarted. |
+| Multiple offline-rebuild nexuses pile up on one mayastor node, increasing blast radius | Spread temporary nexus placement across mayastor nodes (see [Rebuild Flow](#rebuild-flow)) |
 
 ## Graduation Criteria
 
@@ -232,6 +242,23 @@ Feature: Offline volume rebuild
     Given the offline rebuild concurrency limit is 1
     And two unpublished volumes are eligible for offline rebuild
     Then at most one offline rebuild should be in progress at a time
+
+  Scenario: io-engine process killed mid offline rebuild
+    Given an offline rebuild is in progress on node A
+    When the mayastor io-engine process on node A is killed
+    Then on next reconcile no orphan temporary nexus should remain
+    And the offline rebuild should resume on a remaining healthy node
+
+  Scenario: control plane crash before NexusInfo is persisted
+    Given an offline rebuild has just been initiated
+    When the control plane is killed before NexusInfo is persisted to etcd
+    Then on restart no orphan temporary nexus should remain
+    And the volume health signal should still trigger a fresh offline rebuild
+
+  Scenario: Offline-rebuild nexus placement spreads across nodes
+    Given several unpublished volumes are eligible for offline rebuild
+    When the OfflineRebuildReconciler picks target nodes
+    Then no single mayastor node should host more than its fair share of offline-rebuild nexuses
 ```
 
 ### Production-like tests
