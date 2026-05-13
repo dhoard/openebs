@@ -90,7 +90,7 @@ async fn dump_lvm_vscont_and_vs_class(
     let lvm_driver = "local.csi.openebs.io".to_string();
 
     // Create the root dir path
-    create_directory_if_not_exist(root_path.to_path_buf())?;
+    create_directory_if_not_exist(root_path)?;
 
     let mut errors = Vec::new();
 
@@ -119,7 +119,7 @@ pub async fn lvm_dump(k8s_client: &ClientSet, root_dir: &Path) -> Result<(), Err
 
     let mut root_dir = root_dir.to_path_buf();
     root_dir.push("lvm");
-    create_directory_if_not_exist(root_dir.clone())?;
+    create_directory_if_not_exist(&root_dir)?;
 
     if let Err(e) = dump_typed_lvm_nodes(k8s_client, &root_dir).await {
         errors.push(e);
