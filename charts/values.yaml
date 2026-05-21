@@ -1,3 +1,12 @@
+global:
+  # -- Global override for container image registry
+  imageRegistry: ""
+  # -- Global image pull secrets (merged with local imagePullSecrets and not overridden)
+  # - secret
+  imagePullSecrets: []
+  # -- Global override for image pull policy
+  imagePullPolicy: ""
+
 openebs-crds:
   csi:
     volumeSnapshots:
@@ -9,6 +18,13 @@ openebs-crds:
 localpv-provisioner:
   rbac:
     create: true
+  globalImageRegistryOverride: true
+  helperPod:
+    image:
+      registry: "docker.io"
+  localpv:
+    image:
+      registry: "docker.io"
 
 # Refer to https://github.com/openebs/zfs-localpv/blob/v2.7.1/deploy/helm/charts/values.yaml for complete set of values.
 zfs-localpv:
