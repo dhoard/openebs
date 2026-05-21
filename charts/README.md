@@ -89,7 +89,7 @@ helm delete `<RELEASE NAME>` -n `<RELEASE NAMESPACE>`
 | https://openebs.github.io/dynamic-localpv-provisioner | localpv-provisioner | 4.5.0-develop |
 | https://openebs.github.io/lvm-localpv | lvm-localpv | 1.9.0-develop |
 | https://openebs.github.io/mayastor-extensions | mayastor | 0.0.0 |
-| https://openebs.github.io/rawfile-localpv | rawfile-localpv | 0.12.0 |
+| https://openebs.github.io/rawfile-localpv | rawfile-localpv | 0.14.0 |
 | https://openebs.github.io/zfs-localpv | zfs-localpv | 2.10.0-develop |
 
 ## Values
@@ -104,6 +104,9 @@ helm delete `<RELEASE NAME>` -n `<RELEASE NAMESPACE>`
 | engines.&ZeroWidthSpace;local.&ZeroWidthSpace;rawfile.&ZeroWidthSpace;enabled | Enable/Disable LocalPV Rawfile Storage Engine | `false` |
 | engines.&ZeroWidthSpace;local.&ZeroWidthSpace;zfs.&ZeroWidthSpace;enabled | Enable/Disable LocalPV ZFS Storage Engine | `true` |
 | engines.&ZeroWidthSpace;replicated.&ZeroWidthSpace;mayastor.&ZeroWidthSpace;enabled | Enable/Disable Replicated PV Mayastor Storage Engine | `true` |
+| global.&ZeroWidthSpace;imagePullPolicy | Global override for image pull policy | `""` |
+| global.&ZeroWidthSpace;imagePullSecrets | Global image pull secrets (merged with local imagePullSecrets and not overridden) - secret | `[]` |
+| global.&ZeroWidthSpace;imageRegistry | Global override for container image registry | `""` |
 | loki.&ZeroWidthSpace;enabled | Enable/Disable loki. | `true` |
 | loki.&ZeroWidthSpace;localpvScConfig.&ZeroWidthSpace;loki.&ZeroWidthSpace;basePath | Host path where local loki data is stored in. | `"/var/local/{{ .Release.Name }}/localpv-hostpath/loki"` |
 | loki.&ZeroWidthSpace;localpvScConfig.&ZeroWidthSpace;loki.&ZeroWidthSpace;reclaimPolicy | ReclaimPolicy of loki's localpv hostpath storage class. | `"Delete"` |
