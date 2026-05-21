@@ -70,8 +70,6 @@ annotations:
     - name: kubectl
       image: docker.io/openebs/kubectl:1.25.15
     - name: linux-utils
-      image: docker.io/openebs/linux-utils:4.3.0
-    - name: linux-utils
       image: docker.io/openebs/linux-utils:4.5.0
     - name: lvm-driver
       image: docker.io/openebs/lvm-driver:1.9.0-develop
@@ -98,7 +96,7 @@ annotations:
     - name: mayastor-operator-diskpool
       image: docker.io/openebs/mayastor-operator-diskpool:develop
     - name: provisioner-localpv
-      image: docker.io/openebs/provisioner-localpv:4.4.0
+      image: docker.io/openebs/provisioner-localpv:4.5.0
     - name: provisioner-localpv
       image: docker.io/openebs/provisioner-localpv:4.5.0-develop
     - name: rawfile-localpv
