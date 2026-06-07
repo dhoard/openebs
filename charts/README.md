@@ -98,7 +98,7 @@ helm delete `<RELEASE NAME>` -n `<RELEASE NAMESPACE>`
 |:----|:------------|:--------|
 | alloy.&ZeroWidthSpace;enabled | Enable/Disable Alloy. | `true` |
 | alloy.&ZeroWidthSpace;logging_config.&ZeroWidthSpace;labels | Labels to enable scraping on, at-least one of these labels should be present. | <pre>{<br>"openebs.io/logging":true<br>}</pre> |
-| alloy.&ZeroWidthSpace;logging_config.&ZeroWidthSpace;tenant_id | X-Scope-OrgID to pe populated which pushing logs. Make sure the caller also uses the same. | `"openebs"` |
+| alloy.&ZeroWidthSpace;logging_config.&ZeroWidthSpace;tenant_id | X-Scope-OrgID to be populated when pushing logs. Make sure the caller also uses the same. | `"openebs"` |
 | engines.&ZeroWidthSpace;local.&ZeroWidthSpace;hostpath.&ZeroWidthSpace;enabled | Enable/Disable Dynamic LocalPV Provisioner | `true` |
 | engines.&ZeroWidthSpace;local.&ZeroWidthSpace;lvm.&ZeroWidthSpace;enabled | Enable/Disable LocalPV LVM Storage Engine | `true` |
 | engines.&ZeroWidthSpace;local.&ZeroWidthSpace;rawfile.&ZeroWidthSpace;enabled | Enable/Disable LocalPV Rawfile Storage Engine | `false` |
