@@ -97,7 +97,7 @@ annotations:
     - name: mayastor-operator-diskpool
       image: docker.io/openebs/mayastor-operator-diskpool:develop
     - name: provisioner-localpv
-      image: docker.io/openebs/provisioner-localpv:4.5.0
+      image: docker.io/openebs/provisioner-localpv:4.5.1
     - name: provisioner-localpv
       image: docker.io/openebs/provisioner-localpv:4.6.0-develop
     - name: rawfile-localpv
