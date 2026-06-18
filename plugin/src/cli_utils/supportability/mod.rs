@@ -28,13 +28,9 @@ pub struct SupportArgs {
     #[clap(global = true, long, short = 'd', default_value = "./")]
     output_directory_path: String,
 
-    /// Namespace where openebs is installed.
-    #[arg(skip)]
-    pub namespace: String,
-
     /// Configuration for K8s connection.
     #[clap(skip)]
-    pub kubeconfig: supportability::KubeConfigArgs,
+    pub ctx: supportability::K8sCtxArgs,
 
     /// The tenant id to be used to query loki logs.
     #[clap(global = true, long, default_value = "openebs")]
@@ -71,11 +67,6 @@ impl SupportArgs {
         &self.output_directory_path
     }
 
-    /// Returns the Kubernetes namespace of the openebs service.
-    pub fn namespace(&self) -> &str {
-        &self.namespace
-    }
-
     /// Returns the tenant ID used to query Loki logs.
     pub fn tenant_id(&self) -> &str {
         &self.tenant_id
@@ -92,7 +83,7 @@ impl SupportArgs {
     ///
     /// * `namespace` - The namespace to be set.
     pub fn set_namespace(&mut self, ns: String) {
-        self.namespace = ns;
+        self.ctx.namespace = ns;
     }
 }
 
