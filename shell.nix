@@ -61,7 +61,7 @@ mkShellNoCC {
     fi
     export OPENEBS_SRC=`pwd`
     export CTRL_SRC="$OPENEBS_SRC"/mayastor/dependencies/control-plane
-    export PATH="$PATH:$(pwd)/target/debug"
+    export PATH="$(pwd)/target/debug:$PATH"
 
     ${pkgs.lib.optionalString (norust) "cowsay ${norust_moth}"}
     ${pkgs.lib.optionalString (norust) "echo"}

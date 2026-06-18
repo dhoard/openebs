@@ -37,15 +37,16 @@ pub(crate) const ARCHIVE_PREFIX: &str = "openebs";
 async fn execute_resource_dump(cli_args: SupportArgs, resource: Resource) -> Result<(), Error> {
     let config = DumpConfig::new(
         cli_args.output_directory_path().to_string(),
-        cli_args.namespace().to_string(),
+        cli_args.ctx.namespace.clone(),
         cli_args.loki_endpoint().cloned(),
         cli_args.etcd_endpoint().cloned(),
         *cli_args.since(),
-        cli_args.kubeconfig.clone(),
+        cli_args.ctx.kubeconfig.clone(),
         *cli_args.timeout(),
         OutputFormat::Tar,
         cli_args.tenant_id().to_string(),
         cli_args.logging_label_selectors().to_string(),
+        cli_args.ctx.rest_security.clone(),
     );
     match resource {
         Resource::System(args) => {

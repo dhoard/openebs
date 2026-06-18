@@ -44,7 +44,7 @@ impl CliArgs {
                 upgrade_args.cli_args.ctx = args.ctx.clone();
             }
             cli_utils::Operations::Dump(ref mut dump_args) => {
-                dump_args.args.kubeconfig = args.ctx.clone().into();
+                dump_args.args.ctx.kubeconfig = args.ctx.clone().into();
                 dump_args.args.set_namespace(ns().await?);
             }
         }
