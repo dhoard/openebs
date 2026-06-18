@@ -11,5 +11,5 @@ pub fn info(message: &str, data: Option<&str>) {
 
 /// Print error on console.
 pub fn error(message: &str, data: &str) {
-    eprintln!("{}: {} ", Red.paint(message), Red.paint(data));
+    eprintln!("{}: {}", Red.paint(message), Red.paint(data));
 }

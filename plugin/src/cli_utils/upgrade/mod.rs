@@ -309,7 +309,7 @@ async fn handle_upgrade_event(
 /// Log to user and error out if any rebuild in progress.
 async fn rebuild_in_progress_validation(client: &ApiClient) -> Result<()> {
     if rebuild_in_progress(client).await? {
-        console_logger::error("Error", "The cluster is rebuilding replica of some volumes. To skip this validation please run after some time or re-run with '--skip-replica-rebuild` flag.");
+        console_logger::error("Error", "The cluster is rebuilding replica of some volumes. To skip this validation please run after some time or re-run with `--skip-replica-rebuild` flag.");
         return Err(anyhow!("Cluster is rebuilding replica of some volumes."));
     }
 
@@ -350,7 +350,7 @@ async fn upgrade_path_validation(allow_unstable: bool, source_version: &Version)
     let destination_version = get_destination_version_tag();
 
     if destination_version.contains("develop") {
-        console_logger::error("Error", "Upgrade failed as destination version is unsupported. Please try with `--skip-upgrade-path-validation-for-unsupported-version.");
+        console_logger::error("Error", "Upgrade failed as destination version is unsupported. Please try with `--skip-upgrade-path-validation-for-unsupported-version`.");
         return Err(anyhow!(
             "The upgrade path is invalid: destination version contains develop"
         ));
