@@ -123,13 +123,9 @@ annotations:
     - name: csi-resizer
       image: registry.k8s.io/sig-storage/csi-resizer:v2.0.0
     - name: csi-snapshotter
-      image: registry.k8s.io/sig-storage/csi-snapshotter:v7.0.0
-    - name: csi-snapshotter
       image: registry.k8s.io/sig-storage/csi-snapshotter:v8.2.0
     - name: csi-snapshotter
       image: registry.k8s.io/sig-storage/csi-snapshotter:v8.2.1
-    - name: snapshot-controller
-      image: registry.k8s.io/sig-storage/snapshot-controller:v7.0.0
     - name: snapshot-controller
       image: registry.k8s.io/sig-storage/snapshot-controller:v8.2.0
     - name: snapshot-controller
