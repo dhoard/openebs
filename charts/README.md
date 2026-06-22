@@ -89,7 +89,7 @@ helm delete `<RELEASE NAME>` -n `<RELEASE NAMESPACE>`
 | https://openebs.github.io/dynamic-localpv-provisioner | localpv-provisioner | 4.6.0-develop |
 | https://openebs.github.io/lvm-localpv | lvm-localpv | 1.10.0-develop |
 | https://openebs.github.io/mayastor-extensions | mayastor | 0.0.0 |
-| https://openebs.github.io/rawfile-localpv | rawfile-localpv | 0.14.0 |
+| https://openebs.github.io/rawfile-localpv | rawfile-localpv | 0.14.1 |
 | https://openebs.github.io/zfs-localpv | zfs-localpv | 2.11.0-develop |
 
 ## Values

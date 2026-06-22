@@ -24,7 +24,7 @@ docker.io/openebs/mayastor-obs-callhome:develop
 docker.io/openebs/mayastor-operator-diskpool:develop
 docker.io/openebs/provisioner-localpv:4.5.1
 docker.io/openebs/provisioner-localpv:4.6.0-develop
-docker.io/openebs/rawfile-localpv:v0.14.0
+docker.io/openebs/rawfile-localpv:v0.14.1
 docker.io/openebs/zfs-driver:2.11.0-develop
 quay.io/minio/mc:RELEASE.2024-11-21T17-21-54Z
 quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
