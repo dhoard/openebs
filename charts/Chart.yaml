@@ -38,7 +38,7 @@ dependencies:
     repository: "https://openebs.github.io/lvm-localpv"
     condition: engines.local.lvm.enabled
   - name: rawfile-localpv
-    version: 0.14.0
+    version: 0.14.1
     repository: "https://openebs.github.io/rawfile-localpv"
     condition: engines.local.rawfile.enabled
   - name: mayastor
@@ -101,7 +101,7 @@ annotations:
     - name: provisioner-localpv
       image: docker.io/openebs/provisioner-localpv:4.6.0-develop
     - name: rawfile-localpv
-      image: docker.io/openebs/rawfile-localpv:v0.14.0
+      image: docker.io/openebs/rawfile-localpv:v0.14.1
     - name: zfs-driver
       image: docker.io/openebs/zfs-driver:2.11.0-develop
     - name: mc
