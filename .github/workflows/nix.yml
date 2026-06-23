@@ -14,16 +14,16 @@ jobs:
   nix-linter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: 'recursive'
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: changes
         with:
           filters: |
             nix:
               - '**.nix'
-      - uses: cachix/install-nix-action@v31.3.0
+      - uses: cachix/install-nix-action@v31.10.6
         if: steps.changes.outputs.nix == 'true'
 
       - name: Set NIX_PATH

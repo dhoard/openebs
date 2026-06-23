@@ -15,12 +15,12 @@ jobs:
   helm-images:
     runs-on: oracle-vm-8cpu-32gb-x86-64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - id: nixpath
         run: echo "nix_path=nixpkgs=$(jq -r '.nixpkgs.url' nix/sources.json)" >> $GITHUB_OUTPUT
-      - uses: cachix/install-nix-action@v31.3.0
+      - uses: cachix/install-nix-action@v31.10.6
         with:
           nix_path: "${{ steps.nixpath.outputs.nix_path }}"
           enable_kvm: true
@@ -39,7 +39,7 @@ jobs:
       - name: Update chart README.md
         run: nix-shell ./scripts/helm/shell.nix --run "./scripts/helm/generate-readme.sh"
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         if: ${{ env.DOCKERHUB_USERNAME != '' }}
