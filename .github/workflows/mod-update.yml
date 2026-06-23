@@ -17,13 +17,13 @@ jobs:
     outputs:
       pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: recursive
       - id: nixpath
         run: echo "nix_path=nixpkgs=$(jq -r '.nixpkgs.url' nix/sources.json)" >> $GITHUB_OUTPUT
-      - uses: cachix/install-nix-action@v31.3.0
+      - uses: cachix/install-nix-action@v31.10.6
         with:
           nix_path: "${{ steps.nixpath.outputs.nix_path }}"
       - name: Prefetch Nix-Shell
@@ -42,7 +42,7 @@ jobs:
           echo "branch=${version}_mod_update" >> $GITHUB_OUTPUT
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(ci): update git submodules"
           title: "[CI] Update git submodules"

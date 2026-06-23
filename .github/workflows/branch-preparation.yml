@@ -59,7 +59,7 @@ jobs:
       branch_exists: ${{ steps.check-branch.outputs.exists }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: develop
           fetch-depth: 0
@@ -88,13 +88,13 @@ jobs:
       pr_title: ${{ steps.set-title.outputs.title }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.branch}}
           fetch-depth: 0
           submodules: recursive
 
-      - uses: cachix/install-nix-action@v31.3.0
+      - uses: cachix/install-nix-action@v31.10.6
 
       - name: Pre-populate nix-shell
         run: |
@@ -133,7 +133,7 @@ jobs:
         run: nix-shell ./scripts/helm/shell.nix --run "SKIP_GIT=1 ./scripts/helm/generate-readme.sh"
 
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -167,7 +167,7 @@ jobs:
 
       - name: Create Pull Request to release
         id: cpr
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           base: ${{ github.event.inputs.branch}}
           commit-message: "chore(ci): update helm chart versions and/or git submodules"
