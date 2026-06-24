@@ -1,0 +1,15 @@
+group:
+  repos:
+    - openebs/mayastor
+    - openebs/mayastor-control-plane
+    - openebs/mayastor-extensions
+    - openebs/mayastor-dependencies
+    - openebs/spdk-rs
+    - openebs/lvm-localpv
+    - openebs/zfs-localpv
+    - openebs/linux-utils
+    - openebs/dynamic-localpv-provisioner
+
+  files:
+    - source: .github/dependabot.yml
+      dest: .github/dependabot.yml
