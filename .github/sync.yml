@@ -1,0 +1,47 @@
+openebs/mayastor:
+  - source: .github/DEPENDABOT_TEMPLATES/dependabot.tmpl
+    dest: .github/dependabot.yml
+    template:
+      ecosystem: cargo
+
+openebs/mayastor-control-plane:
+  - source: .github/DEPENDABOT_TEMPLATES/dependabot.tmpl
+    dest: .github/dependabot.yml
+    template:
+      ecosystem: cargo
+
+openebs/mayastor-extensions:
+  - source: .github/DEPENDABOT_TEMPLATES/dependabot.tmpl
+    dest: .github/dependabot.yml
+    template:
+      ecosystem: cargo
+
+openebs/mayastor-dependencies:
+  - source: .github/DEPENDABOT_TEMPLATES/dependabot.tmpl
+    dest: .github/dependabot.yml
+    template:
+      ecosystem: cargo
+
+openebs/spdk-rs:
+  - source: .github/DEPENDABOT_TEMPLATES/dependabot.tmpl
+    dest: .github/dependabot.yml
+    template:
+      ecosystem: cargo
+
+openebs/lvm-localpv:
+  - source: .github/DEPENDABOT_TEMPLATES/dependabot.tmpl
+    dest: .github/dependabot.yml
+    template:
+      ecosystem: gomod
+
+openebs/zfs-localpv:
+  - source: .github/DEPENDABOT_TEMPLATES/dependabot.tmpl
+    dest: .github/dependabot.yml
+    template:
+      ecosystem: gomod
+
+openebs/dynamic-localpv-provisioner:
+  - source: .github/DEPENDABOT_TEMPLATES/dependabot.tmpl
+    dest: .github/dependabot.yml
+    template:
+      ecosystem: gomod
