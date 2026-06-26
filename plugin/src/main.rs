@@ -10,7 +10,7 @@ pub mod console_logger;
 pub mod constants;
 
 #[derive(Parser, Debug)]
-#[clap(name = utils::package_description!(), version = utils::version_info_str!())]
+#[clap(name = utils::package_description!(), version = utils::version_info_string!())]
 #[group(skip)]
 struct CliArgs {
     #[clap(subcommand)]

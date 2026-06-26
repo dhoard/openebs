@@ -1,7 +1,7 @@
 use utils::{
     package_description,
     tracing_telemetry::{parse_key_value, FmtStyle, KeyValue},
-    version_info_str,
+    version_info_string,
 };
 
 use clap::Parser;
@@ -10,7 +10,7 @@ use url::Url;
 
 /// These are the supported cli configuration options for upgrade.
 #[derive(Parser)]
-#[command(name = package_description!(), version = version_info_str!())]
+#[command(name = package_description!(), version = version_info_string!())]
 #[command(about = format!("Upgrades OpenEBS"), long_about = None)]
 pub(crate) struct CliArgs {
     /// This is the URL for the storage REST API server.
