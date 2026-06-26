@@ -1,15 +1,111 @@
-name: Sync Dependabot Config
+name: Sync Dependabot Configuration
 
 on:
   workflow_dispatch:
+    inputs:
+      base_branch:
+        description: "Target branch to update"
+        required: true
+        default: "develop"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   sync:
+    name: Sync ${{ matrix.repo }} Dependabot
+
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Rust repositories
+          - repo: openebs/mayastor
+            ecosystem: cargo
 
-      - uses: BetaHuhn/repo-file-sync-action@v1.21.1
+          - repo: openebs/mayastor-control-plane
+            ecosystem: cargo
+
+          - repo: openebs/mayastor-extensions
+            ecosystem: cargo
+
+          - repo: openebs/mayastor-dependencies
+            ecosystem: cargo
+
+          - repo: openebs/spdk-rs
+            ecosystem: cargo
+
+          # Go repositories
+          - repo: openebs/lvm-localpv
+            ecosystem: gomod
+
+          - repo: openebs/zfs-localpv
+            ecosystem: gomod
+
+          - repo: openebs/linux-utils
+            ecosystem: gomod
+
+          - repo: openebs/dynamic-localpv-provisioner
+            ecosystem: gomod
+
+    steps:
+      - name: Checkout workflow repository
+        uses: actions/checkout@v7
+
+      - name: Checkout target repository
+        uses: actions/checkout@v7
         with:
-          GH_PAT: ${{ secrets.REPO_SYNC_TOKEN }}
+          repository: ${{ matrix.repo }}
+          token: ${{ secrets.REPO_SYNC_TOKEN }}
+          ref: ${{ inputs.base_branch }}
+          path: target
+          submodules: recursive
+          persist-credentials: true
+
+      - name: Generate Dependabot configuration
+        shell: bash
+        run: |
+          if [[ "${{ matrix.ecosystem }}" == "cargo" ]]; then
+            GROUP_NAME="rust-security"
+          else
+            GROUP_NAME="go-security"
+          fi
+
+          mkdir -p target/.github
+
+          sed \
+            -e "s/{{ECOSYSTEM}}/${{ matrix.ecosystem }}/g" \
+            -e "s/{{GROUP_NAME}}/${GROUP_NAME}/g" \
+            .github/DEPENDABOT_TEMPLATE/dependabot.tmpl \
+            > target/.github/dependabot.yml
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.REPO_SYNC_TOKEN }}
+          path: target
+          branch: sync/dependabot-config/${{ inputs.base_branch }}
+          base: ${{ inputs.base_branch }}
+          delete-branch: true
+          signoff: true
+          commit-message: |
+            chore: sync Dependabot configuration
+
+            Synchronize organization Dependabot configuration.
+          title: |
+            chore: sync Dependabot configuration
+          body: |
+            ## Summary
+
+            Synchronize the organization-wide Dependabot configuration.
+
+            ### Changes
+
+            - Update .github/dependabot.yml
+            - Generated from .github/DEPENDABOT_TEMPLATE/dependabot.tmpl
+          labels: |
+            area/dependency

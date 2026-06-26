@@ -10,28 +10,13 @@ updates:
         patterns:
           - "*"
 
-{% if ecosystem == "cargo" %}
-  - package-ecosystem: "cargo"
+  - package-ecosystem: "{{ECOSYSTEM}}"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 0
     groups:
-      rust-security:
+      {{GROUP_NAME}}:
         applies-to: security-updates
         patterns:
           - "*"
-{% endif %}
-
-{% if ecosystem == "gomod" %}
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 0
-    groups:
-      go-security:
-        applies-to: security-updates
-        patterns:
-          - "*"
-{% endif %}
