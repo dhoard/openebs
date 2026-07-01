@@ -7,8 +7,8 @@ owners:
   - "@yugchaudhari"
 editor: TBD
 creation-date: 2026-06-09
-last-updated: 2026-06-20
-status: provisional
+last-updated: 2026-06-22
+status: implementable
 see-also:
   - https://github.com/openebs/openebs/issues/4242
   - https://github.com/openebs/mayastor/issues/1993
