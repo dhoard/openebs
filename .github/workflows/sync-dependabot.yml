@@ -92,7 +92,7 @@ jobs:
           base: ${{ inputs.base_branch }}
           delete-branch: true
           author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
-          commiter: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
           signoff: true
           commit-message: |
             chore: sync Dependabot configuration
