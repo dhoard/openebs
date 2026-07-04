@@ -9,21 +9,27 @@ owners:
 editor: TBD
 creation-date: 2025-01-24
 last-updated: 2025-01-24
-status: implementable
+status: implemented
 ---
 
 # OpenEBS Enhancement Proposal for Mayastor At-Rest Encryption of data
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Motivation](#motivation)
-3. [Goals](#goals)
-4. [Non-Goals](#non-goals)
-5. [Proposal](#proposal)
-6. [User Stories](#user-stories)
-7. [Implementation Details](#implementation-details)
-8. [Testing](#testing)
+- [OpenEBS Enhancement Proposal for Mayastor At-Rest Encryption of data](#openebs-enhancement-proposal-for-mayastor-at-rest-encryption-of-data)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Motivation](#motivation)
+  - [Goals](#goals)
+  - [Non-Goals](#non-goals)
+  - [Proposal](#proposal)
+    - [Key Concepts](#key-concepts)
+    - [Workflow](#workflow)
+  - [User Stories](#user-stories)
+  - [Implementation Details](#implementation-details)
+    - [Design](#design)
+    - [Components to Update](#components-to-update)
+  - [Testing](#testing)
 
 ---
 
@@ -71,7 +77,7 @@ Implementing data encryption at rest ensures that sensitive information remains 
    - When the spec is applied, the diskpool operator picks up this request and dispatches the create pool request containing Secret name to the Mayastor agents that complete the diskpool provisioning.
    - The spec for creating a pool with encryption will look like below:
 
-```
+```yaml
 apiVersion: "openebs.io/v1beta3"
 kind: DiskPool
 metadata:
@@ -80,16 +86,14 @@ metadata:
 spec:
   node: <node-name>
   disks: ["/dev/disk/by-id/<id>"]
-  topology:
-    labelled:
-      topology-key: topology-value
-  encryptionKeyConfig:
-    type: Secret
-    config:
-      name: <myKeySecretName>
+  encryptionConfig:
+    source:
+      secret:
+        name: <myKeySecretName>
 ```
+
 2. **Diskpool CRD migration**:
-   - After an upgrade to Diskpool CRD version v1beta3 happens in the cluster, any existing CRs that are on version v1beta2 will have to be migrated to version v1beta3 by the implementation. This would also require that the new field `encryptionKeyConfig` be defined as optional in the CRD.
+   - After an upgrade to Diskpool CRD version v1beta3 happens in the cluster, any existing CRs that are on version v1beta2 will have to be migrated to version v1beta3 by the implementation. This would also require that the new field `encryptionConfig` be defined as optional in the CRD.
 
 3. **Diskpool import upon node or io-engine restart**:
    - In the event of a node restart, io-engine restart or a node going offline and coming up again - the diskpool
@@ -98,14 +102,15 @@ spec:
 4. **Volume Provisioning**:
    - Pool topology rules ensure that for a volume requesting encryption, the replicas are only placed on the diskpools that have
    encryption enabled on them. This will be handled by storageclass via the poolHasTopologyKey setting to let the volume replica placement happen on pools that are labelled with a specific key identifying encryption.
-   - The storageclass definition required for volumes to be encrypted will have an additional field named `secure`, which needs to be set to `true` if encryption is required.
-```
+   - The storageclass definition required for volumes to be encrypted will have an additional field named `encrypted`, which needs to be set to `true` if encryption is required.
+
+```yaml
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: mayastor-3
 parameters:
-  secure: "true"
+  encrypted: "true"
   repl: "3"
 provisioner: io.openebs.csi-mayastor
 ```
@@ -119,28 +124,75 @@ provisioner: io.openebs.csi-mayastor
 
 ### Design
 
-- **Secret Name Parameter**: 
-   - Add a new field `encryptionKeyConfig` to the diskpool CR. This fields holds the name of Secret object that contains actual DEK.
-   - The control plane agent-core refers the metadata info from `encryptionKeyConfig` and then parses the actual Data Encryption Key(DEK) from the Secret, via Kubernetes client APIs.
-   - The data plane receives the request to create the pool using the provided DEK.
-   - Once the pool is created using a Secret, the key for that pool can't be transparently changed via a different Secret. Doing so will require a full rebuild of pool onto a different pool.
+- **Encryption Key Loading Options**:
+  - Pool create/import supports two ways to provide encryption parameters:
+  - Option 1 (`EncryptionData`): pass raw key material (cipher + key data) over gRPC in the pool request.
+  - Option 2 (`EncryptionSecret`): pass a Secret source name over gRPC and let io-engine resolve the Kubernetes Secret and parse the DEK.
 
-- **Secret Name during Pool Import**: 
-  - Set the `encryptionKeyConfig` in the PoolSpec.
-  - When a pool import is required, use the `encryptionKeyConfig` from PoolSpec to fetch the DEK again.
+- **Current Decision (Secret Name for now)**:
+  - Add a new field `encryptionConfig` to the diskpool CR. This field holds the source metadata for the Secret object that contains the DEK.
+  - The control plane agent-core forwards only the Secret reference to io-engine and does not load or parse the DEK.
+  - The gRPC channel from agent-core to io-engine is currently not TLS-protected.
+  - Because of that, this implementation does not send raw key material over that gRPC path.
+  - io-engine resolves the Kubernetes Secret and parses the actual Data Encryption Key (DEK) during pool create/import.
+  - Once the pool is created using a Secret, the key for that pool can't be transparently changed via a different Secret. Doing so will require a full rebuild of pool onto a different pool.
+
+- **Secret Name during Pool Import**:
+  - Set the `encryptionConfig` in the PoolSpec.
+  - When a pool import is required, io-engine uses the `encryptionConfig` from PoolSpec to fetch the DEK again.
   - Dispatch the import operation to data plane.
+
+- **PoolCreateRequest API Change**:
+  - Pool create/import encryption parameters are passed either as raw encryption data or as a Secret source reference.
+
+```protobuf
+// Encryption parameters for this pool. Either as raw key params, OR a name to a Kubernetes
+// Secret resource or a file.
+oneof encryption {
+  EncryptionData data = 7;
+  EncryptionSecret secret = 8;
+}
+
+// Represents an encryption key that can be used to encrypt an
+// entity like pool or lvol/replica.
+message EncryptionKey {
+  // Name of the key.
+  string key_name = 1;
+  // The AES encryption key.
+  bytes key = 2;
+  // AES Key length.
+  uint32 key_length = 3;
+  // key2 (required for AES_XTS).
+  optional bytes key2 = 4;
+  // The length of key2. Must be same as key_length.
+  optional uint32 key2_length = 5;
+}
+
+message EncryptionData {
+  // Cipher to be used.
+  Cipher cipher = 1;
+  // The encryption key.
+  EncryptionKey key = 2;
+}
+
+// This message represents name of the source for getting
+// key parameter details.
+message EncryptionSecret {
+  string secret = 1;
+}
+```
 
 ### Components to Update
 
-- **Diskpool Custom Resource Definition**: The Custom Resource need to identify the `encryptionKeyConfig` field.
-- **Control-Plane agent-core**: The agent needs to be modified to have an ability to read Kubernetes API objects.
-- **Data-Plane io-engine**: io-engine need to be able to create and place a crypto block device on top of base block device of the diskpool.
+- **Diskpool Custom Resource Definition**: The Custom Resource needs to identify the `encryptionConfig` field.
+- **Control-Plane agent-core**: The agent needs to pass the Secret source reference to io-engine as part of the pool request.
+- **Data-Plane io-engine**: io-engine needs to resolve Kubernetes Secret references, parse encryption parameters, and create/place a crypto block device on top of base block device of the diskpool.
 
 ## Testing
 
- - Create a diskpool with a Secret of AES_CBC cipher and 128-bit key. The pool creation must succeed.
- - Create a diskpool with a Secret of AES_CBC cipher and 256-bit key. The pool creation must succeed.
- - Create a diskpool with a Secret of AES_XTS cipher and 128-bit keys. The pool creation must succeed.
- - Upon a node restart, the import of the encrypted pool on that node must successfully complete.
- - Provision a volume via encryption storage class. The volume replicas must get placed only on encrypted pools.
- - Scale up an encrypted volume. The new replicas must get placed only on encrypted pools.
+- Create a diskpool with a Secret of AES_CBC cipher and 128-bit key. The pool creation must succeed.
+- Create a diskpool with a Secret of AES_CBC cipher and 256-bit key. The pool creation must succeed.
+- Create a diskpool with a Secret of AES_XTS cipher and 128-bit keys. The pool creation must succeed.
+- Upon a node restart, the import of the encrypted pool on that node must successfully complete.
+- Provision a volume via encryption storage class. The volume replicas must get placed only on encrypted pools.
+- Scale up an encrypted volume. The new replicas must get placed only on encrypted pools.
