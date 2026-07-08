@@ -7,8 +7,8 @@ owners:
   - "@tiagolobocastro"
 editor: TBD
 creation-date: 2026-01-11
-last-updated: 2026-01-21
-status: implementable
+last-updated: 2026-07-08
+status: implemented
 ---
 
 # VolumeAttributeClass Support for Enhanced PVC Configuration
