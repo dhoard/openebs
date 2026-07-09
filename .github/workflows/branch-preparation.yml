@@ -177,5 +177,5 @@ jobs:
             kind/ci
           draft: false
           signoff: true
-          branch: "prepare-${{ github.event.inputs.branch}}"
+          branch: "ci-bot/branch-prep/${{ github.event.inputs.branch}}"
           token: ${{ secrets.ORG_CI_GITHUB }}

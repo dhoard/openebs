@@ -3,6 +3,11 @@ queue_rules:
     update_method: rebase
     branch_protection_injection_mode: merge
     update_bot_account: openebs-ci
+    commit_message_format:
+      title: inherit
+      body: pr-body
+      trailers:
+        - co-authored-by
     merge_conditions:
       - check-success = markdown-spell-check
       - check-success = plugin-build-script
@@ -11,6 +16,7 @@ queue_rules:
       - check-success = nix-linter
       - check-success = submodule-branch
       - check-success = rust-linter-build
+      - -label ~= do-not-merge
     queue_conditions:
       - check-success = markdown-spell-check
       - check-success = plugin-build-script
@@ -19,8 +25,12 @@ queue_rules:
       - check-success = nix-linter
       - check-success = submodule-branch
       - check-success = rust-linter-build
+      - -label ~= do-not-merge
+      - -draft
+      - check-success = DCO
 merge_queue:
   max_parallel_checks: 1
+  status_comments: outcomes
 pull_request_rules:
   - name: auto-label and approve backport PRs
     conditions:
