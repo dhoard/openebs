@@ -39,7 +39,7 @@ jobs:
       - id: set-target
         run: |
           version=$(nix-shell -p yq-go --run "yq '.appVersion' charts/Chart.yaml")
-          echo "branch=${version}_mod_update" >> $GITHUB_OUTPUT
+          echo "branch=ci-bot/mod-update/${version}" >> $GITHUB_OUTPUT
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v8
