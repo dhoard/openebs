@@ -17,24 +17,27 @@ _Note_: This document should not be construed as a binding commitment to deliver
 
 Please refer the GitHub project [OpenEBS Roadmap Tracking](https://github.com/orgs/openebs/projects/78) for the execution status of the roadmap items. The project also provides the release mapping and timelines for the issues and enhancement requests raised by the community.
 
+Find all the open OEP issues [here](https://github.com/openebs/openebs/issues?q=is%3Aissue%20state%3Aopen%20label%3Akind%2Foep)
+
 | Feature | Description | Local or Replicated | Release timeline | Status |
 | :------ | :---------- | :------------------ | :--------------- | :----- |
-| Volume Offline Rebuild | Maintain HA even when volumes are unpublished | Replicated PV Mayastor | v4.7 | In-Progress |
+| [DiskPool Draining](https://github.com/openebs/openebs/issues/4245) | Draining objects out of Mayastor Diskpool | Replicated PV Mayastor | v4.7 | In-Progress |
+| [Volume Offline Rebuild](https://github.com/openebs/openebs/issues/4208) | Maintain HA even when volumes are unpublished | Replicated PV Mayastor | v4.7 | In-Progress |
 | Volume Size Alignment | Align start and end of user data | Replicated PV Mayastor | v4.6 | In-Progress |
-| DiskPool Monitoring and Error Visibility | Expose errors and alerts | Replicated PV Mayastor | v4.5 (Q2 2026) | Completed |
-| Offline Node/Pool Deletion | Purge stale unrecoverable nodes/pools | Replicated PV Mayastor | v4.5 (Q2 2026) | Completed |
+| [DiskPool Monitoring and Error Visibility](https://github.com/openebs/openebs/issues/4185) | Expose errors and alerts | Replicated PV Mayastor | v4.5 (Q2 2026) | Completed |
+| [Offline Node/Pool Deletion](https://github.com/openebs/openebs/issues/3908) | Purge stale unrecoverable nodes/pools | Replicated PV Mayastor | v4.5 (Q2 2026) | Completed |
 | Interrupt Mode (Experimental) | Reduce CPU utilization | Replicated PV Mayastor | v4.5 (Q2 2026) | Completed |
-| KubeVirt LiveMigration (Experimental) | RWX BlockVolume for KubeVirt | Replicated PV Mayastor | v4.5 (Q2 2026) | Completed |
+| [KubeVirt LiveMigration (Experimental)](https://github.com/openebs/openebs/issues/4059) | RWX BlockVolume for KubeVirt | Replicated PV Mayastor | v4.5 (Q2 2026) | Completed |
 | Snapshot rebuilding | Rebuilding snapshot data during replica rebuilds | Replicated PV Mayastor | TBD | Paused |
 | NVMe zoning support | Support for Western Digital ZNS devices | Replicated PV Mayastor | TBD | Halted |
-| DiskPool over multiple devices | Able to create and expand DiskPools that are aggregates of multiple block devices | Replicated PV Mayastor | TBD | |
+| [DiskPool over multiple devices](https://github.com/openebs/openebs/issues/4011) | Able to create and expand DiskPools that are aggregates of multiple block devices | Replicated PV Mayastor | TBD | |
 | DiskPool of ZFS/LVM type | DiskPool over LVM VG & ZFS ZPool | Replicated PV Mayastor | TBD | Paused |
 | Local PV RawFile graduation | Steps to graduate localpv-rawfile from beta to stable | Local PV Rawfile | TBD | In-Progress |
 | Unified Local PV CSI driver | Single CSI driver for all Local PV engines | Local PV (LVM, ZFS, Hostpath) | TBD | |
-| Unmap support | Support discard/unmap/trim operations for NVMe volumes | Replicated PV Mayastor | TBD | |
+| [Unmap support](https://github.com/openebs/openebs/issues/4074) | Support discard/unmap/trim operations for NVMe volumes | Replicated PV Mayastor | TBD | |
 | Handle Pool media transfer | Support for handling scenarios where pool block device is disconnected from one node and reconnected to a different node | All | TBD | |
-| Local PV LVM cloning | Able to do K8s restore of Local PV LVM snapshot | Local PV LVM | v4.4 (Q4 2025) | Completed |
-| Pool Cordon | Cordon pools for maintenance | Replicated PV Mayastor | v4.4 (Q4 2025) | Completed |
+| [Local PV LVM cloning](https://github.com/openebs/openebs/issues/4071) | Able to do K8s restore of Local PV LVM snapshot | Local PV LVM | v4.4 (Q4 2025) | Completed |
+| [Pool Cordon](https://github.com/openebs/openebs/issues/3903) | Cordon pools for maintenance | Replicated PV Mayastor | v4.4 (Q4 2025) | Completed |
 | DiskPool resize | Able to increase pool capacity by expansion of underlying disk pool device(s) with I/O continuity | Replicated PV Mayastor | v4.4 (Q4 2025) | Completed |
 | Unified kubectl plugin | Unified kubectl plugin to manage all OpenEBS components | All | v4.3 (Q2 2025) | Completed |
 | At-rest encryption | Provision encrypted data-at-rest volumes | Replicated PV Mayastor | v4.3 (Q2 2025) | Completed |
