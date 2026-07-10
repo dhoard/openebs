@@ -18,6 +18,8 @@ queue_rules:
       - check-success = submodule-branch
       - check-success = rust-linter-build
       - -label ~= do-not-merge
+      - -draft
+      - check-success = DCO
     queue_conditions:
       - check-success = markdown-spell-check
       - check-success = plugin-build-script
