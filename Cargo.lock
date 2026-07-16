@@ -883,6 +883,8 @@ dependencies = [
  "serde",
  "serde_json",
  "snafu",
+ "strum",
+ "strum_macros",
  "tokio",
  "tonic",
  "tonic-build",
@@ -1581,6 +1583,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "inotify"
+version = "0.11.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "153be1941a183ec9ccd095ddbe17a8b8d435ef6c76e9e02451b933c3999af2c8"
+dependencies = [
+ "bitflags 2.8.0",
+ "inotify-sys",
+ "libc",
+]
+
+[[package]]
+name = "inotify-sys"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c033f80b2c113cdf91ab7a33faa9cbc014726dcad99880c8609af2a370edf37d"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "inquire"
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1900,6 +1922,7 @@ dependencies = [
  "chrono",
  "clap",
  "constants",
+ "events-api",
  "http",
  "humantime",
  "k8s-openapi",
@@ -1908,12 +1931,14 @@ dependencies = [
  "kube-proxy",
  "openapi",
  "parse-size",
+ "prettytable-rs",
  "rest-plugin",
  "schemars",
  "serde",
  "serde_json",
  "shutdown",
  "snafu",
+ "strum",
  "strum_macros",
  "supportability",
  "tokio",
@@ -2165,6 +2190,7 @@ dependencies = [
  "hyper-rustls",
  "hyper-tls",
  "hyper-util",
+ "inotify",
  "opentelemetry",
  "opentelemetry-http",
  "opentelemetry-otlp",
